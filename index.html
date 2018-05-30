@@ -18,7 +18,8 @@
             createjs.Ticker.setFPS(60);
             createjs.Ticker.addEventListener("tick", stage)
             
-            createjs.Tween.get(circle).to({alpha:0}, 3000);
+            createjs.Tween.get(circle, {loop: true}).to({alpha:0, x:400}, 3000, createjs.Ease.elasticInOut)
+            .to({alpha:0, x:400}, 1500, createjs.Ease.elasticInOut);
         }
     </script>
 </body>
