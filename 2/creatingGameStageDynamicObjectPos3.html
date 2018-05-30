@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>HTML5 Game</title>
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+</head>
+<body onload="init();">
+    <canvas id="demoCanvas" width="1000" height="1000"></canvas>
+    <script>
+    const PADDLE_WIDTH = 100;
+    const PADDLE_HEIGHT = 20;
+    const BRICKS_WIDTH = 60;
+    const BRICKS_HEIGHT = 30;
+    var paddle;
+    var ball;
+    var stage;
+        
+    function init(){
+        stage = new createjs.Stage("demoCanvas");
+        createjs.Ticker.setFPS(60);
+        createjs.Ticker.addEventListener("tick", stage); // instead of calling stage.update all the time
+        createBrickGrid();
+        createBall();
+        createPaddle();
+    }
+    
+    function createBrickGrid(){ // creates a grid of bricks (14 bricks in a row and 5 coloms of bricks), 10 px space between rows and 5 px space between columns
+        for(var i = 0; i < 14; i++){
+            for(var j = 0; j < 5; j++){
+                createBrick(i*(BRICKS_WIDTH+10)+40, j*(BRICKS_HEIGHT+5)+20);
+            }
+        }
+    }
+    function createBrick(x,y){ // x y position is specified in the parameter for individual bricks
+        var brick = new createjs.Shape();
+        brick.graphics.beginFill('#000FFF');
+        brick.graphics.drawRect(0, 0, BRICKS_WIDTH, BRICKS_HEIGHT);
+        brick.graphics.endFill(); // completed the shape
+        stage.addChild(brick);
+        
+        brick.regX = BRICKS_WIDTH/2;
+        brick.regY = BRICKS_HEIGHT/2; // changing where the brick's center is (registration point)
+        
+        brick.x = x;
+        brick.y = y;
+        //destroyBrick(brick);
+    }
+        
+    function createBall(){
+        ball = new createjs.Shape();
+        ball.graphics.beginFill("Red").drawCircle(0,0,8);
+        ball.x = stage.canvas.width/2;
+        ball.y = stage.canvas.height/2;
+        stage.addChild(ball);
+    }
+        
+    function destroyBrick(brick){
+        createjs.Tween.get(brick,{}).to({scaleX:0, scaleY:0}, 500); // brick element shrinks until it disappears   
+    }
+        
+    function createPaddle(){
+        paddle = new createjs.Shape();
+        paddle.graphics.beginFill('#000000').drawRect(0,0,PADDLE_WIDTH, PADDLE_HEIGHT); // commands are chained together vs the create brick function
+        paddle.y = stage.canvas.height*0.9;
+        paddle.x = stage.canvas.width/2 - PADDLE_WIDTH/2;
+        stage.addChild(paddle);
+    }
+    </script>
+</body>
+</html>
