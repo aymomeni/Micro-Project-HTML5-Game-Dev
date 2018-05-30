@@ -1,0 +1,34 @@
+<html>
+<head>
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+</head>
+<body onload="init();">
+    <script>
+        var queue = new createjs.LoadQueue(); // creating a createjs queue that fires off events
+        
+        function init(){
+            queue.on("progress", handleFileProgress);
+            queue.on("fileload", handleFileLoad);
+            queue.on("complete", handleComplete);
+            queue.loadManifest([
+                {id: "myImage", src:"./image1.jpg"  // adding the id and the image resource location to load manifest
+                },{id: "myImage2", src: "./image2.jpg" 
+                },{id: "myImage3", src: "./image3.jpg"} 
+            ]);
+        }
+        
+        function handleFileProgress(event){
+            console.log("Progress: "+ queue.progress*100 + "%");   
+        }
+        
+        function handleFileLoad(event){
+            var image = queue.getResult(event.item.id);
+            document.body.appendChild(image);
+        }
+        
+        function handleComplete(event){
+            console.log("Loading Complete");   
+        }
+    </script>
+</body>
+</html>
