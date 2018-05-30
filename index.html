@@ -14,7 +14,11 @@
             circle.x = 250;
             circle.y = 250;
             stage.addChild(circle);
-            stage.update();
+            // stage.update() -> updates the frame so the circle can be shown
+            createjs.Ticker.setFPS(60);
+            createjs.Ticker.addEventListener("tick", stage)
+            
+            createjs.Tween.get(circle).to({alpha:0}, 3000);
         }
     </script>
 </body>
