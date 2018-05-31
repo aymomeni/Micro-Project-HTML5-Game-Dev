@@ -80,13 +80,13 @@
     
     function startLevel(){
         if(!gameStarted){
-                console.log("Game has started");
-                gameStarted = true;
-                ball.xSpeed = 5;
-                ball.ySpeed = 5;
-                ball.up = true;
-                ball.right = true;
-            }
+            console.log("Game has started");
+            gameStarted = true;
+            ball.xSpeed = 5;
+            ball.ySpeed = 5;
+            ball.up = true;
+            ball.right = true;
+        }
     }
     
     function keyDownHandler(e){
@@ -151,7 +151,6 @@
             paddle.x = PADDLE_WIDTH/2;
         }
         
-        
         if(!gameStarted){
             ball.x = paddle.x;
             ball.y =  paddle.y - PADDLE_HEIGHT/2 - BALL_RADIUS;
@@ -206,8 +205,6 @@
         
         // hitting the south wall (later removed)
         if(ball.y + BALL_RADIUS >= stage.canvas.height){
-//            ball.y = stage.canvas.height - BALL_RADIUS;
-//            ball.up = true;
             loseLife();
         }
         
