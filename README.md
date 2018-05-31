@@ -1,7 +1,7 @@
 # Micro-Project-HTML5-Game-Dev
 
 ### Objective:
-# Creating an interactive game in HTML5
+Creating an interactive game in HTML5
 
 
 ### Tools:
