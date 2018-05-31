@@ -1,8 +1,7 @@
 # Micro-Project-HTML5-Game-Dev
-Micro Project - HTML5 Game Development
 
-###Objective:
-#Creating an interactive game in HTML5
+### Objective:
+# Creating an interactive game in HTML5
 
 
 ### Tools:
