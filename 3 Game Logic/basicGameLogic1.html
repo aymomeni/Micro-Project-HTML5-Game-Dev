@@ -1,0 +1,106 @@
+<html>
+<head>
+    <title>HTML5 Game</title>
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+</head>
+<body onload="init();">
+    <canvas id="demoCanvas" width="1000" height="1000"></canvas>
+    <script>
+    const PADDLE_WIDTH = 100;
+    const PADDLE_HEIGHT = 20;
+    const BRICKS_WIDTH = 60;
+    const BRICKS_HEIGHT = 30;
+    const BALL_RADIUS = 8;
+    var paddle;
+    var ball;
+    var stage;
+    var bricks = []; // holds all of the bricks
+        
+    function init(){
+        stage = new createjs.Stage("demoCanvas");
+        createjs.Ticker.setFPS(60);
+        createjs.Ticker.addEventListener("tick", tick); // calls tick method each frame
+        createBrickGrid();
+        createBall();
+        createPaddle();
+    }
+        
+    function tick(){
+        stage.update();
+        
+        if(ball.up){   
+            ball.y -= ball.ySpeed; // top left is 0,0 so going up means subtracting from ball's y
+            ball.x -= ball.ySpeed;
+        }
+        
+        for(var i = 0; i < bricks.length; i++){
+            if(checkCollision(ball, bricks[i])){
+                destroyBrick(bricks[i]);   
+            }
+        }
+    }
+        
+    function checkCollision(ballElement, brickElement){
+        if(ballElement.x + BALL_RADIUS <= brickElement.x - BRICKS_WIDTH/2 || ballElement.x - BALL_RADIUS 
+           >= brickElement.x + BRICKS_WIDTH / 2 || ballElement.y - BALL_RADIUS >= brickElement.y +
+           BRICKS_HEIGHT / 2 || ballElement.y + BALL_RADIUS <= brickElement.y - BRICKS_HEIGHT / 2)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function createBrickGrid(){ // creates a grid of bricks (14 bricks in a row and 5 coloms of bricks), 10 px space between rows and 5 px space between columns
+        for(var i = 0; i < 14; i++){
+            for(var j = 0; j < 5; j++){
+                createBrick(i*(BRICKS_WIDTH+10)+40, j*(BRICKS_HEIGHT+5)+20);
+            }
+        }
+    }
+    function createBrick(x,y){ // x y position is specified in the parameter for individual bricks
+        var brick = new createjs.Shape();
+        brick.graphics.beginFill('#000FFF');
+        brick.graphics.drawRect(0, 0, BRICKS_WIDTH, BRICKS_HEIGHT);
+        brick.graphics.endFill(); // completed the shape
+        stage.addChild(brick);
+        
+        brick.regX = BRICKS_WIDTH/2;
+        brick.regY = BRICKS_HEIGHT/2; // changing where the brick's center is (registration point)
+        
+        brick.x = x;
+        brick.y = y;
+        
+        bricks.push(brick);
+        //destroyBrick(brick);
+    }
+        
+    function createBall(){
+        ball = new createjs.Shape();
+        ball.graphics.beginFill("Red").drawCircle(0,0,BALL_RADIUS);
+        ball.x = stage.canvas.width/2;
+        ball.y = stage.canvas.height/2;
+        stage.addChild(ball);
+        
+        ball.up = true; // used to determine if the ball is going up or down (helps us determine if the yspeed which is always positive should go up or down the stage
+        ball.right = true; // if ball is going right (if false it is going left)
+        ball.xSpeed = 0;
+        ball.ySpeed = 1;
+        ball.lastX = 0; // saves previous locations of the ball to determine if bricks were hit
+        ball.lastY = 0;
+    }
+        
+    function destroyBrick(brick){
+        createjs.Tween.get(brick,{}).to({scaleX:0, scaleY:0}, 500); // brick element shrinks until it disappears   
+    }
+        
+    function createPaddle(){
+        paddle = new createjs.Shape();
+        paddle.graphics.beginFill('#000000').drawRect(0,0,PADDLE_WIDTH, PADDLE_HEIGHT); // commands are chained together vs the create brick function
+        paddle.y = stage.canvas.height*0.9;
+        paddle.x = stage.canvas.width/2 - PADDLE_WIDTH/2;
+        stage.addChild(paddle);
+    }
+    </script>
+</body>
+</html>
