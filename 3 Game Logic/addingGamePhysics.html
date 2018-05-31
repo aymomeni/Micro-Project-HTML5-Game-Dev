@@ -1,0 +1,240 @@
+<html>
+<head>
+    <title>HTML5 Game</title>
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+</head>
+<body onload="init();">
+    <canvas id="demoCanvas" width="1000" height="1000"></canvas>
+    <script>
+    const PADDLE_WIDTH = 100;
+    const PADDLE_HEIGHT = 20;
+    const BRICKS_WIDTH = 60;
+    const BRICKS_HEIGHT = 30;
+    const BALL_RADIUS = 8;
+    const FULL_X_SPEED = 7;
+    var paddle;
+    var ball;
+    var stage;
+    var bricks = []; // holds all of the bricks
+    var score = 0;
+    var lives = 3;
+    var scoreText;
+        
+    function init(){    
+        stage = new createjs.Stage("demoCanvas");
+
+        createBrickGrid();
+        createBall();
+        createPaddle();
+        createScoreText();
+        addToScore(0);
+        
+        createjs.Ticker.setFPS(60);
+        createjs.Ticker.addEventListener("tick", tick); // calls tick method each frame
+    }
+    
+    function addToScore(points){
+        score += points;
+        scoreText.text = "Score: " + score + " / Lives: " + lives;
+    }
+        
+    function createScoreText(){
+        scoreText = new createjs.Text("", "16px Arial", "#000000");
+        scoreText.y = stage.canvas.height-16;
+        stage.addChild(scoreText);
+    }
+        
+    function loseLife(){
+        lives--;
+        scoreText.text = "Score: " + score + " / Lives: " + lives;
+        ball.xSpeed = 0;
+        ball.ySpeed = 0;
+        ball.x = paddle.x;
+        ball.y = paddle.y - PADDLE_HEIGHT/2 - BALL_RADIUS;
+    }
+        
+    function tick(){
+        
+        stage.update();
+        
+        if(ball.up){   
+            ball.y -= ball.ySpeed; // top left is 0,0 so going up means subtracting from ball's y
+        } else {
+            ball.y += ball.ySpeed; // if it ball goes downwards we keep adding to the y value of the ball (the ball continues to go down)   
+        }
+        
+        if(ball.right){
+            ball.x += ball.xSpeed;
+        } else {
+            ball.x -= ball.xSpeed;   
+        }
+        
+        for(var i = 0; i < bricks.length; i++){
+            if(checkCollision(ball, bricks[i])){
+                addToScore(100);
+                destroyBrick(bricks[i]);
+                bricks.splice(i,1);
+                i--; // once a brick is removed the array shrinks at i and we need to check the next element which is at i after splicing
+            }
+        }
+        
+        // Check the collision of the ball and paddle
+        if(checkCollision(ball, paddle)){
+            newBallXSpeedAfterCollision(ball, paddle);
+        }       
+        
+        // Check if the ball reaches any of the walls of the stage
+        // hitting the right wall
+        if(ball.x + BALL_RADIUS >= stage.canvas.width){
+            ball.x = stage.canvas.width - BALL_RADIUS;
+            ball.right = false;
+        }
+        
+        // hitting the west wall
+        if(ball.x - BALL_RADIUS <= 0){
+            ball.x = BALL_RADIUS;
+            ball.right = true;
+        }
+        
+        // hitting the north wall
+        if(ball.y - BALL_RADIUS <= 0){
+            ball.y = BALL_RADIUS;
+            ball.up = false;
+        }
+        
+        // hitting the south wall (later removed)
+        if(ball.y + BALL_RADIUS >= stage.canvas.height){
+//            ball.y = stage.canvas.height - BALL_RADIUS;
+//            ball.up = true;
+            loseLife();
+        }
+        
+        ball.lastX = ball.x;
+        ball.lastY = ball.y;
+    }
+        
+    function checkCollision(ballElement, hitElement){ 
+        
+        var leftBorder = (hitElement.x - hitElement.getBounds().width/2);
+        var rightBorder = (hitElement.x + hitElement.getBounds().width/2);
+        var topBorder = (hitElement.y - hitElement.getBounds().width/2);
+        var bottomBorder = (hitElement.y + hitElement.getBounds().height/2);
+        var previousBallLeftBorder = ballElement.lastX - BALL_RADIUS;
+        var previousBallRightBorder = ballElement.lastX + BALL_RADIUS;
+        var previousBallTopBorder = ballElement.lastY - BALL_RADIUS;
+        var previousBallBottomBorder = ballElement.lastY + BALL_RADIUS;
+        var ballLeftBorder = ballElement.x - BALL_RADIUS;
+        var ballRightBorder = ballElement.x + BALL_RADIUS;
+        var ballTopBorder = ballElement.y - BALL_RADIUS;
+        var ballBottomBorder = ballElement.y + BALL_RADIUS;
+        
+        // checks if the balls borders have breached the hitelement "aka box"
+        if((ballLeftBorder <= rightBorder) && (ballRightBorder >= leftBorder) && (ballTopBorder <= bottomBorder) && (ballBottomBorder >= topBorder)){
+            
+            if((ballTopBorder <= bottomBorder)&&(previousBallTopBorder > bottomBorder)){
+                // hit from the bottom
+                ballElement.up = false;
+                ballElement.y = bottomBorder + BALL_RADIUS;
+            }           
+            if((ballBottomBorder >= topBorder)&&(previousBallBottomBorder < topBorder)){
+                //  hit from the top
+                ballElement.up = true;
+                ballElement.y = topBorder - BALL_RADIUS;
+            }
+            if((ballLeftBorder <= rightBorder)&&(previousBallLeftBorder > rightBorder)){
+                // hit from the right
+                ballElement.right = true;
+                ballElement.x = rightBorder + BALL_RADIUS;
+            }
+            if((ballRightBorder >= leftBorder)&&(previousBallBottomBorder < leftBorder)){
+                // hit from the left
+                ballElement.right = false;
+                ballElement.x = leftBorder - BALL_RADIUS;
+            }
+            
+            ballElement.lastX = ballElement.x; // last values can be checked for a more precise location
+            ballElement.lastY = ballElement.y;
+            return true;       
+        }
+        
+        return false;
+    }
+        
+    function newBallXSpeedAfterCollision(ballElement, hitElement){
+        var startPoint = hitElement.x - hitElement.getBounds().width/2;
+        var midPoint = hitElement.x;
+        var endPoint = hitElement.x + hitElement.getBounds().width/2;
+        
+        if(ballElement.x < midPoint) {
+            ball.right = false;
+            ball.xSpeed = FULL_X_SPEED - ((ballElement.x-startPoint)/(midPoint-startPoint)) * FULL_X_SPEED;
+        } else {    
+            ball.xSpeed = FULL_X_SPEED -((endPoint - ballElement.x)/(endPoint-midPoint)) * FULL_X_SPEED;
+            ball.right = true;
+        }
+    }
+    
+    function createBrickGrid(){ // creates a grid of bricks (14 bricks in a row and 5 coloms of bricks), 10 px space between rows and 5 px space between columns
+        for(var i = 0; i < 14; i++){
+            for(var j = 0; j < 5; j++){
+                createBrick(i*(BRICKS_WIDTH+10)+40, j*(BRICKS_HEIGHT+5)+20);
+            }
+        }
+    }
+    function createBrick(x,y){ // x y position is specified in the parameter for individual bricks
+        var brick = new createjs.Shape();
+        brick.graphics.beginFill('#000FFF');
+        brick.graphics.drawRect(0, 0, BRICKS_WIDTH, BRICKS_HEIGHT);
+        brick.graphics.endFill(); // completed the shape
+               
+        brick.regX = BRICKS_WIDTH/2;
+        brick.regY = BRICKS_HEIGHT/2; // changing where the brick's center is (registration point)
+        
+        brick.setBounds(brick.regX, brick.regY, BRICKS_WIDTH, BRICKS_HEIGHT);
+        brick.x = x;
+        brick.y = y;
+        
+        stage.addChild(brick);
+        bricks.push(brick);
+        //destroyBrick(brick);
+    }
+    
+    function removeBrickFromScreen(brick){
+        stage.removeChild(brick);   
+    }
+    
+    function createBall(){
+        ball = new createjs.Shape();
+        ball.graphics.beginFill("Red").drawCircle(0,0,BALL_RADIUS);
+        ball.x = stage.canvas.width/2;
+        ball.y = stage.canvas.height/2;
+        stage.addChild(ball);
+        
+        ball.up = true; // used to determine if the ball is going up or down (helps us determine if the yspeed which is always positive should go up or down the stage
+        ball.right = true; // if ball is going right (if false it is going left)
+        ball.xSpeed = 5;
+        ball.ySpeed = 5;
+        ball.lastX = 0; // saves previous locations of the ball to determine if bricks were hit
+        ball.lastY = 0;
+    }
+        
+    function destroyBrick(brick){
+        createjs.Tween.get(brick,{}).to({scaleX:0, scaleY:0}, 500); // brick element shrinks until it disappears  (animation of brick disappearing) but the brick still exists in the brick array if it wasn't deleted
+        setTimeout(removeBrickFromScreen, 500, brick);
+    }
+        
+    function createPaddle(){
+        paddle = new createjs.Shape();
+        paddle.width = PADDLE_WIDTH;
+        paddle.height = PADDLE_HEIGHT;
+        paddle.graphics.beginFill('#000000').drawRect(0,0,PADDLE_WIDTH, PADDLE_HEIGHT); // commands are chained together vs the create brick function
+        paddle.y = stage.canvas.height*0.9;
+        paddle.x = stage.canvas.width/2 - PADDLE_WIDTH/2;
+        paddle.regX = PADDLE_WIDTH/2;
+        paddle.regY = PADDLE_HEIGHT/2
+        paddle.setBounds(paddle.regX, paddle.regY, PADDLE_WIDTH, PADDLE_HEIGHT);
+        stage.addChild(paddle);
+    }
+    </script>
+</body>
+</html>
